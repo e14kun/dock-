@@ -1,0 +1,2 @@
+#!/bin/bash
+dock- exec {container_name} ${@:1}

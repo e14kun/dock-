@@ -1,0 +1,81 @@
+#!/bin/bash
+# 何を実行するかお知らせ
+alert_b4run(){
+print_var+="「"
+print_var+=$1
+print_var+="」を実行します。"
+echo $print_var
+}
+
+# 実行 Error お知らせ
+alert_norun(){
+print_var+="「"
+print_var+=$1
+print_var+="」は実行できない命令です。"
+echo $print_var
+
+}
+
+#if [ $# -ne 1 ]; then
+if [ $# -lt 1 ]; then
+  echo "指定された引数は$#個です。" 1>&2
+  echo "実行するには1個以上の引数が必要です。" 1>&2
+  exit 1
+else
+	HERE=`pwd`
+	if [ $1 = "--version" ]; then
+		echo "dock- by lee juyoung version 1.0"
+
+	elif [ $1 = "clist" ]; then
+		alert_b4run "docker container list"
+		docker container list
+	elif [ $1 = "ilist" ]; then
+		alert_b4run "docker images"
+		docker images 
+	elif [ $1 = "install" ]; then
+		alert_b4run "ln -s $HERE/dock- /usr/local/bin/dock-"
+		ln -s $HERE/dock- /usr/local/bin/dock-
+		echo "home_path=$HERE" > $HERE/.dock-_config
+	elif [ $1 = "uninstall" ]; then
+		alert_b4run "rm -r /usr/local/bin/dock-*"
+		rm -r /usr/local/bin/dock-*
+	elif [ $1 = "make" ]; then
+		BASE_SHELL_FILES=($(ls .base_shell))
+		NEW_DIR=.dock-$2-shell
+		mkdir -p $NEW_DIR
+		for eachValue in ${BASE_SHELL_FILES[@]}; do
+			echo ${eachValue}
+			cp -f $HERE/.base_shell/${eachValue} $HERE/$NEW_DIR/
+			sed -i -e "s/{container_name}/$2/g" $HERE/$NEW_DIR/${eachValue}
+			mv $HERE/$NEW_DIR/${eachValue} $HERE/$NEW_DIR/${eachValue}-$2
+			rm -rf $HERE/$NEW_DIR/${eachValue}-\e
+			ln -s $HERE/$NEW_DIR/${eachValue}-$2 /usr/local/bin/${eachValue}-$2
+		done
+
+	elif [ $1 = "create" ]; then
+		YELL_PATH=/Users/juyoung.lee/Documents/develop/yell/develop_source/yell_server
+#		alert_b4run "docker run --privileged -d -t -p 8080:80 -v $YELL_PATH amzn-linux2-php72-mysql56 /sbin/init"
+#		docker run --name yell --privileged -d -t -p 8080:80 -v $YELL_PATH amzn-linux2-php72-mysql56 /sbin/init 
+		alert_b4run "docker run --name yell --privileged -d -t -p 8080:80 -v /Users/juyoung.lee/Documents/develop/yell/develop_source:/var/www/html/public -it amzn-linux2-php72-mysql56 /sbin/init"
+		docker run --name yell --privileged -d -t -p 8080:80 -v /Users/juyoung.lee/Documents/develop/yell/develop_source:/var/www/html/public -it amzn-linux2-php72-mysql56 /sbin/init
+	elif [ $1 = "join" ]; then
+		alert_b4run "docker exec -it $2 /bin/bash"
+		docker exec -it $2 /bin/bash
+	elif [ $1 = "free" ]; then
+		alert_b4run "docker stop $2"
+		docker stop $2
+	elif [ $1 = "load" ]; then
+		alert_b4run "docker start $2"
+		docker start $2
+	elif [ $1 = "exec" ]; then
+#		alert_b4run "docker exec -it yell `echo ${@:2:($#-1)}`"
+#		alert_b4run "docker exec -it yell `echo ${@:2}`"
+#		docker exec -it yell `echo ${@:2:($#-1)}`
+#		docker exec -it yell `echo ${@:2}`
+		alert_b4run "docker exec -it $2 `echo ${@:3}`"
+		docker exec -it $2 `echo ${@:3}`
+	else
+		alert_norun $1
+	fi
+
+fi
