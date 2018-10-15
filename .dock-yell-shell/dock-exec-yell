@@ -1,0 +1,2 @@
+#!/bin/bash
+dock- exec yell ${@:1}
